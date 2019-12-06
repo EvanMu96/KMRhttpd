@@ -30,3 +30,15 @@
 *.exe
 *.out
 *.app
+
+# Project files
+.DS_Store
+.idea/*
+cmake-build-debug/
+cmake-build-debug/CMakeFiles
+cmake-build-debug/CMakeFiles/Makefile.cmake
+cmake-build-debug/CMakeFiles/KMRhttpd.dir/depend.make
+cmake-build-debug/CMakeFiles/clion-log.txt
+cmake-build-debug/CMakeFiles/Makefile.cmake
+cmake-build-debug/CMakeFiles/KMRhttpd.dir/depend.make
+cmake-build-debug/CMakeFiles/clion-log.txt
