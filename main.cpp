@@ -1,14 +1,30 @@
+/* These lines of comments are from original author */
+/* J. David's webserver */
+/* This is a simple webserver.
+ * Created November 1999 by J. David Blackstone.
+ * CSE 4344 (Network concepts), Prof. Zeigler
+ * University of Texas at Arlington
+ */
+/* Following lines of comments are from Komoriii */
+/* This program compiles for macOS Catalina. It is pthread free.*/
+/*
+    Thanks to J.David for the idea.
+    Also, thanks github user cbsheng for Chinese comment, which helps me a lot for my study.
+*/
+#if !defined(__unix__) && !defined(__APPLE__)
+#error THIS OPERATING SYSTEM DOES NOT SUPPORT KQUEUE API
+#endif
+
 #include <iostream>
+#include <sstream>
 #include <sys/socket.h>
 #include <sys/event.h>
-#include <sys/types.h>
 #include <sys/uio.h>
 #include <sys/stat.h>
 #include <arpa/inet.h>
 #include <cctype>
 #include <fcntl.h>
 #include <unistd.h>
-#include <string>
 #include <stdlib.h>
 #include <functional>
 
@@ -186,7 +202,10 @@ inline void error_die(const char * sc)
     exit(1);
 }
 /**********************************************************************/
-/* Update the status of fds */
+/* Update the status of fds
+ * Parameter: the socket descriptor for listening new connection
+ *            the socket descriptor for update event
+ *            the */
 /**********************************************************************/
 static void updateEvents(int efd, int fd, int events, bool modify)
 {
@@ -209,7 +228,8 @@ static void updateEvents(int efd, int fd, int events, bool modify)
 }
 
 /**********************************************************************/
-/* Execute a CGI script.  Will need to set environment variables as
+/* NOT IN USED
+ * Execute a CGI script.  Will need to set environment variables as
  * appropriate.
  * Parameters: client socket descriptor
  *             path to the CGI script */
@@ -317,15 +337,26 @@ void handleAccept(int efd, int fd) {
     updateEvents(efd, cfd, kReadEvent|kWriteEvent, false);
 }
 
+/**********************************************************************/
+/* callback function for EVFILT_READ
+ * Parameters: the socket descriptor for listening new connection
+ *             the socket descriptor for specific connection
+/**********************************************************************/
 void handleRead(int efd, int fd)
 {
+  //deal with a new connection
   accept_request(fd);
 }
 
-
+/**********************************************************************/
+/* callback function for EVFILT_WRITE
+ * fill your code if you want to call some procedure on this event
+ * Parameters: the socket descriptor for listening new connection
+ *             the socket descriptor for specific connection
+/**********************************************************************/
 void handleWrite(int efd, int fd) {
     //just update
-    updateEvents(efd, fd, kReadEvent, true);
+    //updateEvents(efd, fd, kReadEvent, true);
 }
 
 /**********************************************************************/
@@ -493,7 +524,7 @@ static void loop_once(int efd, int lfd, int waitms)
     struct timespec timeout;
     timeout.tv_sec = waitms / 1000;
     timeout.tv_nsec = (waitms % 1000) * 1000 * 1000;
-    const int kMaxEvent = 20;
+    const int kMaxEvent = 100;
     struct kevent activeEvs[kMaxEvent];
     // n is the number of fds
     int n = kevent(efd, NULL, 0, activeEvs, kMaxEvent, &timeout);
@@ -521,12 +552,17 @@ static void loop_once(int efd, int lfd, int waitms)
     }
 }
 
-
-int main() {
-    // initialization
-    short port = 8000;
+int main(int argc, char * argv[]) {
+    /*initialization*/
+    std::stringstream s(argv[1]);
+    short port;
+    s >> port;
+    int iSetOption = 1;
     int epollfd = kqueue();
     int listenfd = socket(AF_INET, SOCK_STREAM, 0);
+    // set the socket attribute SO_REUSEADDR for non-delaying restart
+    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption,
+               sizeof(iSetOption));
     struct sockaddr_in addr;
     memset (&addr, 0, sizeof(sockaddr));
     addr.sin_family = AF_INET;
@@ -538,6 +574,7 @@ int main() {
     printf("listen at %d \n", port);
     setNonBlock(listenfd);
     updateEvents(epollfd, listenfd, kReadEvent, false);
+    /* main loop */
     for(;;)
     {
         loop_once(epollfd, listenfd, 1000);
