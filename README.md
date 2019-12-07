@@ -5,7 +5,10 @@ kqueue based C++ non-blocking http server on Unix.
 put your text file in the ./static directory.  
 <b>to compile:</b>  
 `
-$ make  
+$ cmake ./  
+`  
+`
+$ make
 `  
 <b>to start a server:</b>  
 `
