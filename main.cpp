@@ -40,6 +40,8 @@ void serve_file(int, const char *);
 void unimplemented(int);
 void setNonBlock(int fd);
 void accept_request(int client);
+void execute_cgi(int client, const char *path,
+                 const char *method, const char *query_string);
 void handleAccept(int efd, int fd);
 static const int kReadEvent = 1;
 static const int kWriteEvent = 2;
@@ -126,8 +128,8 @@ void accept_request(int client)
         if (!cgi)
             serve_file(client, path);
         else
-            perror("cgi needed");
-            //execute_cgi(client, path, method, query_string);
+            //perror("cgi needed");
+            execute_cgi(client, path, method, query_string);
     }
 
     close(client);
@@ -382,9 +384,9 @@ int get_line(int sock, char *buf, int size)
     {
         n = recv(sock, &c, 1, 0);
         /* DEBUG printf("%02X\n", c); */
-        if (-1 == n && errno == EAGAIN){
-            printf("never be here?\n");
-            continue ;
+        if (-1 == n && errno == EAGAIN) {
+            //printf("never be here?\n");
+            continue;
         }
         else if (n > 0)
         {
