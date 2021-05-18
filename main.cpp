@@ -562,9 +562,16 @@ int main(int argc, char * argv[]) {
     int iSetOption = 1;
     int epollfd = kqueue();
     int listenfd = socket(AF_INET, SOCK_STREAM, 0);
-    // set the socket attribute SO_REUSEADDR for non-delaying restart
-    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption,
-               sizeof(iSetOption));
+    //  set the socket attribute SO_REUSEADDR for non-delaying restart
+    if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption,
+             sizeof(iSetOption)) < 0)
+       return 1;
+    
+    // allow bind same port multiple times for local machine LB
+    if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT, (char*)&iSetOption,
+               sizeof(iSetOption)) < 0)
+        return 1;
+
     struct sockaddr_in addr;
     memset (&addr, 0, sizeof(sockaddr));
     addr.sin_family = AF_INET;
