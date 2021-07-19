@@ -11,7 +11,7 @@
     Thanks to J.David for the idea.
     Also, thanks github user cbsheng for Chinese comment, which helps me a lot for my study.
 */
-#if !defined(__unix__) && !defined(__APPLE__)
+#if !defined(__unix__) || !defined(__APPLE__)
 #error THIS OPERATING SYSTEM DOES NOT SUPPORT KQUEUE API
 #endif
 
